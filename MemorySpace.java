@@ -159,6 +159,7 @@ public class MemorySpace {
 			while (secondLit.hasNext()){
 				MemoryBlock mb2 = secondLit.next();
 				if (sum == mb2.baseAddress){
+					//adding the values to the memory block
 					mb.length = mb.length + mb2.length;
 					freeList.remove(mb2);
 					defrag();
