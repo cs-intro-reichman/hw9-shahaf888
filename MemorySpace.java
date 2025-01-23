@@ -57,9 +57,81 @@ public class MemorySpace {
 	 *        the length (in words) of the memory block that has to be allocated
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
-	public int malloc(int length) {		
-		//// Replace the following statement with your code
-		return -1;
+	public int malloc (int length){
+		int min = 0;
+		int address = -1;
+		Node current = freeList.getFirst();
+		int savedLength = 0;
+		Node pointer = null;
+
+		while(current != null){
+			MemoryBlock mb = current.block;
+			int nextLength = mb.length;
+			if (nextLength >  length){
+				if (min == 0){
+					min = nextLength - length;
+					address = mb.baseAddress;
+					savedLength = nextLength;
+					pointer = current;
+				}
+				else{
+					if(min > (nextLength - length)){
+						min = nextLength - length;
+						address = mb.baseAddress;
+						savedLength = nextLength;
+						pointer = current;
+					}
+				}
+			}
+			current = current.next;
+		}
+		if (address != -1){
+			MemoryBlock newMB = new MemoryBlock(address, length);
+			allocatedList.addLast(newMB);
+			//System.out.println("newMB = " + newMB);
+			//System.out.println("allocated = " + allocatedList);
+			MemoryBlock updated = new MemoryBlock(address + length , savedLength - length);
+			int indexSearch = freeList.indexOf(pointer.block);
+			freeList.remove(indexSearch);
+			freeList.add(indexSearch, updated);
+		}
+
+		return address;
+
+
+	}
+	//the using of listiterator doesnt work
+	public int malloc1(int length) {	
+		ListIterator lt = new ListIterator(freeList.getFirst());
+		int min = 0;
+		int address = -1;
+		int savedLength = 0;
+		while (!lt.hasNext()){
+			MemoryBlock mb = lt.next();
+			int nextLength = mb.length;
+			if(nextLength > length){
+				if (min == 0){
+					min = nextLength - length;
+					address = mb.baseAddress;
+					savedLength = nextLength;
+				}
+				else{
+					if(min > (nextLength - length)){
+						min = nextLength - length;
+						address = mb.baseAddress;
+						savedLength = nextLength;
+					}
+				}
+			}
+		}
+
+		if (address != -1){
+			MemoryBlock newMB = new MemoryBlock(address, length);
+			allocatedList.addLast(newMB);
+
+
+		}
+		return address;
 	}
 
 	/**
@@ -71,7 +143,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		//// Write your code here
+		ListIterator lt1 = new ListIterator(allocatedList.getFirst());
+		while (lt1.hasNext() && lt1.current.block.baseAddress != address){
+			lt1.next();
+		}
+		if (lt1.current != null){
+			//System.out.println("i have found adress = " + address);
+			if (lt1.current.block.baseAddress == address){
+				MemoryBlock mb = new MemoryBlock (address, lt1.current.block.length);
+				allocatedList.remove(mb);
+				freeList.addLast(mb);
+			}
+		}
+
 	}
 	
 	/**
