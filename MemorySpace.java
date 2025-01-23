@@ -1,3 +1,6 @@
+
+import java.lang.classfile.components.ClassPrinter;
+
 /**
  * Represents a managed memory space. The memory space manages a list of allocated 
  * memory blocks, and a list free memory blocks. The methods "malloc" and "free" are 
@@ -57,82 +60,56 @@ public class MemorySpace {
 	 *        the length (in words) of the memory block that has to be allocated
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
-	public int malloc (int length){
-		int min = 0;
-		int address = -1;
-		Node current = freeList.getFirst();
-		int savedLength = 0;
-		Node pointer = null;
 
-		while(current != null){
-			MemoryBlock mb = current.block;
-			int nextLength = mb.length;
-			if (nextLength >  length){
-				if (min == 0){
+	public int malloc(int length){
+		ListIterator lt1 = freeList.iterator();
+		//System.out.println("we are here");
+		int address = -1;
+		int savedLength = -1;
+		int min = -1;
+		while (lt1.hasNext()){
+			int nextLength = lt1.current.block.length;
+			if (nextLength >= length){
+				if(min == -1)
+				{
 					min = nextLength - length;
-					address = mb.baseAddress;
+					address = lt1.current.block.baseAddress;
 					savedLength = nextLength;
-					pointer = current;
 				}
 				else{
-					if(min > (nextLength - length)){
+					if (min > nextLength - length){
 						min = nextLength - length;
-						address = mb.baseAddress;
+						address = lt1.current.block.baseAddress;
 						savedLength = nextLength;
-						pointer = current;
 					}
 				}
 			}
-			current = current.next;
+			lt1.current = lt1.current.next;
 		}
+		//System.out.println("address - " + address);
 		if (address != -1){
 			MemoryBlock newMB = new MemoryBlock(address, length);
+			MemoryBlock oldMB = new MemoryBlock(address, savedLength);
 			allocatedList.addLast(newMB);
-			//System.out.println("newMB = " + newMB);
-			//System.out.println("allocated = " + allocatedList);
+
+			int helpIndex = freeList.indexOf(oldMB);
+			freeList.remove(helpIndex);
+
 			MemoryBlock updated = new MemoryBlock(address + length , savedLength - length);
-			int indexSearch = freeList.indexOf(pointer.block);
-			freeList.remove(indexSearch);
-			freeList.add(indexSearch, updated);
-		}
-
-		return address;
-
-
-	}
-	//the using of listiterator doesnt work
-	public int malloc1(int length) {	
-		ListIterator lt = new ListIterator(freeList.getFirst());
-		int min = 0;
-		int address = -1;
-		int savedLength = 0;
-		while (!lt.hasNext()){
-			MemoryBlock mb = lt.next();
-			int nextLength = mb.length;
-			if(nextLength > length){
-				if (min == 0){
-					min = nextLength - length;
-					address = mb.baseAddress;
-					savedLength = nextLength;
-				}
-				else{
-					if(min > (nextLength - length)){
-						min = nextLength - length;
-						address = mb.baseAddress;
-						savedLength = nextLength;
-					}
-				}
+			if (this.freeList.getSize() != 0 || savedLength - length != 0 )
+			{
+				freeList.add(helpIndex, updated);
 			}
+			//System.out.println("free");
+			//System.out.println(freeList.toString());
+			//System.out.println("allocated");
+			//System.out.println(allocatedList.toString());
+			//System.out.println("################################################################");
 		}
 
-		if (address != -1){
-			MemoryBlock newMB = new MemoryBlock(address, length);
-			allocatedList.addLast(newMB);
-
-
-		}
 		return address;
-	}
+	} 
+	
 
 	/**
 	 * Frees the memory block whose base address equals the given address.
@@ -144,11 +121,13 @@ public class MemorySpace {
 	 */
 	public void free(int address) {
 		ListIterator lt1 = new ListIterator(allocatedList.getFirst());
+		if (allocatedList.getSize() == 0){
+			throw new IllegalArgumentException ("index must be between 0 and size");
+		}
 		while (lt1.hasNext() && lt1.current.block.baseAddress != address){
 			lt1.next();
 		}
 		if (lt1.current != null){
-			//System.out.println("i have found adress = " + address);
 			if (lt1.current.block.baseAddress == address){
 				MemoryBlock mb = new MemoryBlock (address, lt1.current.block.length);
 				allocatedList.remove(mb);
@@ -172,7 +151,19 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		/// TODO: Implement defrag test
-		//// Write your code here
+		ListIterator mainLit = freeList.iterator();
+		ListIterator secondLit = freeList.iterator();
+		while (mainLit.hasNext()){
+			MemoryBlock mb = mainLit.next();
+			int sum = mb.baseAddress + mb.length;
+			while (secondLit.hasNext()){
+				MemoryBlock mb2 = secondLit.next();
+				if (sum == mb2.baseAddress){
+					mb.length = mb.length + mb2.length;
+					freeList.remove(mb2);
+					defrag();
+				}
+			}
+		}
 	}
 }
