@@ -184,7 +184,6 @@ public class LinkedList {
 		int counter = 0;
 		Node n1 = new Node(null);
 		for (int i = 0; i < size; i++){
-			//i am not sure that this is the best imp. way
 			n1 = getNode(i);
 			if (n1.block.equals(block)){
 				return i;
@@ -274,13 +273,11 @@ public class LinkedList {
 	 */
 	//maybe do i want to use list uterator
 	public String toString() {
-		//String ans = "(size : " + size + ")";
 		String ans = "";
 		for (int i = 0 ; i < size; i++){
 			Node n1 = getNode(i);
 			if (n1 != null){
 				ans += n1.block.toString() + " ";
-				//ans += " ----> ";
 			}
 		
 		}

@@ -63,7 +63,6 @@ public class MemorySpace {
 
 	public int malloc(int length){
 		ListIterator lt1 = freeList.iterator();
-		//System.out.println("we are here");
 		int address = -1;
 		int savedLength = -1;
 		int min = -1;
@@ -86,7 +85,6 @@ public class MemorySpace {
 			}
 			lt1.current = lt1.current.next;
 		}
-		//System.out.println("address - " + address);
 		if (address != -1){
 			MemoryBlock newMB = new MemoryBlock(address, length);
 			MemoryBlock oldMB = new MemoryBlock(address, savedLength);
@@ -100,11 +98,6 @@ public class MemorySpace {
 			{
 				freeList.add(helpIndex, updated);
 			}
-			//System.out.println("free");
-			//System.out.println(freeList.toString());
-			//System.out.println("allocated");
-			//System.out.println(allocatedList.toString());
-			//System.out.println("################################################################");
 		}
 
 		return address;
